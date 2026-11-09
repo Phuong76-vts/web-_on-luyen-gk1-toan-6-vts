@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Toán 6 • Ôn luyện giữa kì 1 • THCS Võ Thị Sáu</title>
+<meta name="author" content="Ngô Thị Phương - THCS Võ Thị Sáu">
 <meta name="description" content="Web ôn luyện giữa học kì 1 môn Toán 6 theo ma trận đề, dạng trò chơi.">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&display=swap" rel="stylesheet">
@@ -240,6 +241,8 @@ h2{position:relative;padding-left:16px}h2:before{content:"";position:absolute;le
 
 .toast{opacity:0;visibility:hidden}.toast.show{opacity:1;visibility:visible}
 @media(max-width:760px){.nav{justify-content:flex-start!important}}
+
+.credit{position:relative;z-index:2;text-align:center;padding:18px 14px 26px;color:var(--mut);font-size:14px}.credit b{color:var(--ink,inherit)}
 </style></head><body><noscript>Cần bật JavaScript để dùng trang này.</noscript><script>
 'use strict';
 /* ===== NGÂN HÀNG CÂU HỎI TỰ SINH — Toán 6 giữa HK1 (theo ma trận 2026-2027) ===== */
@@ -551,6 +554,44 @@ add('C',3,'tf',()=>{const k=pick([3,9]);const a=k*rnd(3,12),b=k*rnd(3,12);
   tfi(2,'S chia cho '+k+' dư '+(7%k),'S chia cho '+k+' dư '+((7%k)+1),'Đúng: 7 chia cho '+k+' dư '+(7%k)+'.','Sai: số dư là '+(7%k)+' (bằng số dư của 7 cho '+k+').'),
   tfi(3,'S + '+(k-7%k)+' chia hết cho '+k,'S + '+(k-7%k+1)+' chia hết cho '+k,'Đúng: 7 + '+(k-7%k)+' = '+(7+k-7%k)+' chia hết cho '+k+'.','Sai: chỉ thêm '+(k-7%k)+' mới làm tổng chia hết cho '+k+'.')]})});
 
+
+/* ---------- BÀI TOÁN "BAO GẠO": tính chất chia hết của tổng/hiệu ---------- */
+const KW={2:'hai',3:'ba',4:'bốn',5:'năm'};
+const GCTX=[
+  {shop:'Một cửa hàng gạo',obj:'bao gạo',u:'kg',what:'khối lượng',what2:'khối lượng gạo',t1:'buổi sáng',t2:'buổi chiều',sold:'bán',ukg:'khối lượng'},
+  {shop:'Một đại lý xi măng',obj:'bao xi măng',u:'kg',what:'khối lượng',what2:'khối lượng xi măng',t1:'ngày thứ nhất',t2:'ngày thứ hai',sold:'bán',ukg:'khối lượng'},
+  {shop:'Một cửa hàng trái cây',obj:'giỏ cam',u:'kg',what:'khối lượng',what2:'khối lượng cam',t1:'buổi sáng',t2:'buổi chiều',sold:'bán',ukg:'khối lượng'},
+  {shop:'Một cửa hàng dầu ăn',obj:'can dầu',u:'lít',what:'dung tích',what2:'lượng dầu',t1:'buổi sáng',t2:'buổi chiều',sold:'bán',ukg:'dung tích'},
+  {shop:'Một cửa hàng sơn',obj:'thùng sơn',u:'lít',what:'dung tích',what2:'lượng sơn',t1:'tuần trước',t2:'tuần này',sold:'bán',ukg:'dung tích'}];
+function gaoBuild(a,k,cx,withB){
+  const m=k+1;const T=a.reduce((x,y)=>x+y,0);
+  const cand=a.filter(x=>(T-x)%m===0);if(cand.length!==1)return null;
+  const r=cand[0];const rest=a.filter(x=>x!==r);const X=T-r,c=X/m;let sub=null;
+  for(let mask=1;mask<31&&!sub;mask++){const p=[];let sum=0;for(let i=0;i<5;i++)if(mask&(1<<i)){p.push(rest[i]);sum+=rest[i]}if(sum===c)sub=p}
+  if(!sub)return null; /* phải tồn tại cách chia thật sự: buổi sau = c, buổi trước = k·c */
+  const am=rest.filter(x=>!sub.includes(x));const d=T%m;const U=' '+cx.u;
+  const lst=l=>l.length===1?'bao '+l[0]+U:'các bao '+l.join(U+', ')+U;
+  const sol='<b>a)</b> Vì '+cx.what+' '+cx.what2.replace(/^(khối lượng|lượng|dung tích)\s*/,'')+' '+cx.t1+' gấp '+KW[k]+' lần '+cx.t2+' nên nếu coi '+cx.t2+' là 1 phần thì '+cx.t1+' là '+k+' phần. Tổng của 5 '+cx.obj+' đã '+cx.sold+' gồm 1 + '+k+' = '+m+' phần bằng nhau, nên <b>chia hết cho '+m+'</b>.<br>'+
+    'Tổng 6 '+cx.obj+': '+a.join(' + ')+' = '+fmt(T)+' ('+cx.u+'). Ta có '+fmt(T)+' = '+m+' · '+Math.floor(T/m)+' + '+d+', tức '+fmt(T)+' chia cho '+m+' dư '+d+'.<br>'+
+    'Gọi '+cx.obj+' còn lại là x '+cx.u+' thì tổng 5 '+cx.obj+' đã '+cx.sold+' là '+fmt(T)+' − x, và số này chia hết cho '+m+'. Vì '+fmt(T)+' chia '+m+' dư '+d+' nên x cũng phải chia '+m+' dư '+d+'.<br>'+
+    'Số dư khi chia từng '+cx.obj+' cho '+m+': '+a.map(x=>x+' dư '+x%m).join('; ')+'.<br>'+
+    'Chỉ có '+cx.obj+' <b>'+r+U+'</b> chia '+m+' dư '+d+'. Vậy '+cx.obj+' còn lại là '+cx.obj+' <b>'+r+U+'</b>.'+
+    (withB?'<br><b>b)</b> Tổng '+cx.what+' 5 '+cx.obj+' đã '+cx.sold+': '+fmt(T)+' − '+r+' = '+fmt(X)+U+'. '+cx.t2[0].toUpperCase()+cx.t2.slice(1)+': '+fmt(X)+' : '+m+' = <b>'+c+U+'</b> ('+lst(sub)+'). '+cx.t1[0].toUpperCase()+cx.t1.slice(1)+': '+k+' · '+c+' = <b>'+fmt(k*c)+U+'</b> ('+lst(am)+').':'');
+  const q=cx.shop+' có 6 '+cx.obj+' với '+cx.what+' '+a.join(U+', ')+U+'. Cửa hàng đó đã '+cx.sold+' 5 '+cx.obj+', trong đó '+cx.what2+' '+cx.sold+' '+cx.t1+' gấp '+KW[k]+' lần '+cx.what2+' '+cx.sold+' '+cx.t2+'.<br>a) Hỏi '+cx.obj+' còn lại là '+cx.obj.split(' ')[0]+' nào? (Nhập '+cx.what+' của '+cx.obj.split(' ')[0]+' đó, đơn vị '+cx.u+')'+(withB?'<br>b) Tính '+cx.what2+' đã '+cx.sold+' ở '+cx.t1+' và '+cx.t2+'.':'');
+  return{ans:r,k,m,u:cx.u,q,sol,hints:['Hàng '+cx.t1+' gấp '+KW[k]+' lần '+cx.t2+': tổng hai thời điểm gồm mấy phần bằng nhau?','Số '+cx.obj+' đã '+cx.sold+' có tổng chia hết cho '+m+'. Hãy tính tổng 6 '+cx.obj+' rồi xét số dư khi chia cho '+m+'.']};
+}
+function gao(withB,fixed){
+  if(fixed)return gaoBuild([302,306,309,313,316,328],4,GCTX[0],withB);
+  const cx=pick([GCTX[0],GCTX[0],GCTX[0],GCTX[1],GCTX[2],GCTX[3],GCTX[4]]);
+  for(let t=0;t<30000;t++){
+    const k=pick([2,3,4,4,4,5]);const s=rnd(150,700),w=pick([30,40,60]);
+    const set=new Set();while(set.size<6)set.add(s+rnd(0,w));
+    const a=[...set].sort((x,y)=>x-y);const g=gaoBuild(a,k,cx,withB);if(g)return g;
+  }
+  throw new Error('gao: không sinh được');
+}
+add('C',3,'sa',()=>{const g=gao(false,Math.random()<.15);return sa({z:'C',l:3,q:g.q,ans:g.ans,unit:g.u,hint:g.hints[0],exp:g.sol})});
+
 /* ======== VÙNG D — HÌNH PHẲNG ======== */
 add('D',1,'mc',()=>{const k=pick(Object.keys(SV.S));return mc({z:'D',l:1,q:'Hình vẽ bên là hình gì?',svg:SV.shape(k,{nolabel:false}),right:SV.name(k),wrong:Object.keys(SV.S).filter(x=>x!==k).map(x=>SV.name(x)),
   exp:'Đây là '+SV.name(k).toLowerCase()+'.'})});
@@ -750,7 +791,8 @@ function tl2(){
   sol:'a) Diện tích tấm biển: ('+d1+' · '+d2+') : 2 = '+S+' (m²).<br>b) Tiền công sơn: '+S+' · '+fmt(p)+' = <b>'+fmt(S*p)+'</b> (đồng).'};
 }
 function tl3(){
-  const t=rnd(0,3);
+  const t=Math.random()<.4?4:rnd(0,3);
+  if(t===4){const g=gao(true,Math.random()<.2);return{id:'3',pts:TL_PTS['3'],lvl:'Vận dụng cao',title:'Tính chất chia hết của một tổng',kind:'num',ans:g.ans,ansLabel:'Đáp số câu a ('+g.u+')',q:g.q,hints:g.hints,sol:g.sol}}
   if(t===0){const a=pick([3,5,7]),n=pick([4,6,8]);const terms=[];for(let i=1;i<=n;i++)terms.push(i===1?String(a):pw(a,i));
     return{id:'3',pts:TL_PTS['3'],lvl:'Vận dụng cao',title:'Tính chất chia hết của một tổng',kind:null,
     q:'Chứng tỏ rằng A = '+terms.join(' + ')+' chia hết cho '+(a+1)+'.',hints:['Nhóm hai số hạng liền nhau thành một nhóm.','Mỗi nhóm có dạng '+a+'<sup>k</sup> · (1 + '+a+') — có thừa số '+(a+1)+'.'],
@@ -854,7 +896,7 @@ function bgfx(){return '<div class="bgfx">'+SYMS.map((c,i)=>'<span style="left:'
 let view='home';
 function chrome(){
   return bgfx()+'<header class="top"><div class="top-in"><div class="logo" data-act="go" data-v="home"><b>🦉</b>Toán 6 • Ôn giữa kì 1</div><span class="chip" id="chip"></span><button class="snd" data-act="snd" title="Bật/tắt âm thanh" id="sndb">'+(P.snd?'🔊':'🔇')+'</button>'+
-  '<nav class="nav">'+[['home','🏠 Trang chủ'],['map','🗺️ Bản đồ'],['exam','📝 Đề thi thử'],['tl','✍️ Tự luận'],['games','🎮 Trò chơi'],['trophy','🏆 Thành tích']].map(a=>'<button data-act="go" data-v="'+a[0]+'" class="'+(view===a[0]?'on':'')+'">'+a[1]+'</button>').join('')+'</nav></div></header><main id="main"></main><div class="toast" id="toast"></div><canvas id="fx"></canvas>';
+  '<nav class="nav">'+[['home','🏠 Trang chủ'],['map','🗺️ Bản đồ'],['exam','📝 Đề thi thử'],['tl','✍️ Tự luận'],['games','🎮 Trò chơi'],['trophy','🏆 Thành tích']].map(a=>'<button data-act="go" data-v="'+a[0]+'" class="'+(view===a[0]?'on':'')+'">'+a[1]+'</button>').join('')+'</nav></div></header><main id="main"></main><footer class="credit">✨ Sản phẩm của <b>cô Ngô Thị Phương</b> · Tổ trưởng Tổ KHTN · Trường THCS Võ Thị Sáu · Năm học 2026 – 2027</footer><div class="toast" id="toast"></div><canvas id="fx"></canvas>';
 }
 function refreshChip(){const e=$('#chip');if(!e)return;const r=rank();e.innerHTML=r.r[2]+' '+r.r[1]+' · '+P.xp+' XP'}
 function go(v,arg){
@@ -870,7 +912,7 @@ let timers=[];function stopTimers(){timers.forEach(t=>{clearInterval(t);clearTim
 /* ---------- TRANG CHỦ ---------- */
 function vHome(m){MI=0;
   const r=rank();const pct=r.nx?Math.round((P.xp-r.r[0])/(r.nx[0]-r.r[0])*100):100;
-  m.innerHTML='<section class="hero"><div><span class="tag">Năm học 2026 – 2027 · Kết nối tri thức</span><div class="pills"><span>🗺️ 4 vùng đất</span><span>📝 20 đề + đề ngẫu nhiên</span><span>🎮 2 trò chơi</span></div><h1>'+(P.name?'Chào '+esc(P.name)+'! ':'')+'Chinh phục <em>đề giữa kì 1</em> môn Toán 6</h1><p>Luyện theo đúng cấu trúc đề: trắc nghiệm, đúng–sai, trả lời ngắn và tự luận. Câu hỏi tự đổi số mỗi lần – làm bao nhiêu cũng không trùng!</p>'+
+  m.innerHTML='<section class="hero"><div><span class="tag">Năm học 2026 – 2027 · Kết nối tri thức</span><span class="tag" style="margin-left:6px">👩‍🏫 Tác giả: cô Ngô Thị Phương</span><div class="pills"><span>🗺️ 4 vùng đất</span><span>📝 20 đề + đề ngẫu nhiên</span><span>🎮 2 trò chơi</span></div><h1>'+(P.name?'Chào '+esc(P.name)+'! ':'')+'Chinh phục <em>đề giữa kì 1</em> môn Toán 6</h1><p>Luyện theo đúng cấu trúc đề: trắc nghiệm, đúng–sai, trả lời ngắn và tự luận. Câu hỏi tự đổi số mỗi lần – làm bao nhiêu cũng không trùng!</p>'+
   (P.name?'':'<div class="name-in"><input id="nm" maxlength="20" placeholder="Nhập biệt danh của bạn…"><button class="btn gold" data-act="setname">Bắt đầu 🚀</button></div>')+
   (P.name?'<div><b>'+r.r[2]+' '+r.r[1]+'</b> · '+P.xp+' XP'+(r.nx?' · cần '+(r.nx[0]-P.xp)+' XP để lên “'+r.nx[1]+'”':'')+'<div class="xpbar"><i style="width:'+pct+'%"></i></div></div><button class="btn gold" data-act="go" data-v="map">▶ Tiếp tục hành trình</button>':'')+
   '</div><div>'+MASCOT()+'<div class="bubble">'+owl('hi')+'</div></div><span class="sym" style="right:44%;top:10px;font-size:60px">π</span><span class="sym" style="right:6%;bottom:8px;font-size:70px;animation-delay:-2s">∑</span><span class="sym" style="left:46%;bottom:6px;font-size:50px;animation-delay:-4s">△</span></section>'+
@@ -993,7 +1035,7 @@ function vTLRun(m){
   TL.forEach((t,i)=>{const lab=t.id==='1a'?'Bài 1a':t.id==='1b'?'Bài 1b':t.id==='1c'?'Bài 1c':'Bài '+t.id;
     h+='<div class="card tlc" id="tl_'+i+'"><span class="qlab">'+lab+' · '+t.title+' <span class="tag-l">'+t.lvl+' · '+fmtScore(t.pts)+'đ</span></span><div class="qtxt">'+(t.id==='1a'?'Tính hợp lí (nếu có thể): ':'')+t.q+'</div>'+(t.svg||'')+
     '<textarea class="ta" placeholder="Nháp bài giải của bạn (không bắt buộc)…"></textarea>'+
-    (t.kind?'<div class="sain" style="margin-top:8px"><input id="tla'+i+'" placeholder="'+(t.kind==='list'?'Đáp số (VD: 2; 8)':'Đáp số cuối cùng')+'" autocomplete="off"></div>':'')+
+    (t.kind?'<div class="sain" style="margin-top:8px"><input id="tla'+i+'" placeholder="'+(t.ansLabel||(t.kind==='list'?'Đáp số (VD: 2; 8)':'Đáp số cuối cùng'))+'" autocomplete="off"></div>':'')+
     '<div class="self"><button data-act="tlhint" data-i="'+i+'">💡 Gợi ý</button><button class="on" data-act="tlsol" data-i="'+i+'">👀 Xem lời giải'+(t.kind?' & kiểm tra':'')+'</button></div><div id="tlx'+i+'"></div></div>'});
   m.innerHTML=h+'<div class="center"><button class="btn green" data-act="tlfinish">Hoàn thành 🎉</button></div></div>';
 }
